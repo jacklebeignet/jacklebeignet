@@ -1,8 +1,8 @@
 name: Update Current Project
 on:
   schedule:
-    - cron: '0 0 * * *'
-  workflow_dispatch:
+    - cron: '0 0 * * *'  # Runs daily at midnight UTC
+  workflow_dispatch:     # Allows manual triggering
 
 permissions:
   contents: write
@@ -17,44 +17,30 @@ jobs:
           repository: jacklebeignet/jacklebeignet
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Setup GitHub CLI
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y gh
-          echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
+      - name: Authenticate GitHub CLI
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
 
       - name: Find most recently updated repo
         id: find-repo
         run: |
-          MOST_RECENT_REPO=$(gh repo list jacklebeignet --limit 1 --json nameWithOwner,updatedAt --jq 'sort_by(.updatedAt) | reverse | .[0].nameWithOwner')
+          # Get most recently updated repo (excluding the profile README itself)
+          MOST_RECENT_REPO=$(gh repo list jacklebeignet --limit 100 --json nameWithOwner,updatedAt --jq '.[] | select(.nameWithOwner != "jacklebeignet/jacklebeignet") | .nameWithOwner + "|" + .updatedAt' | sort -r -t '|' -k 2 | head -1 | cut -d'|' -f1)
+          
+          # Fallback to Nexus Hub if no other repos found
+          MOST_RECENT_REPO=${MOST_RECENT_REPO:-jacklebeignet/scripts/NexusHub}
+          
           echo "most_recent_repo=$MOST_RECENT_REPO" >> $GITHUB_OUTPUT
           REPO_NAME=$(echo "$MOST_RECENT_REPO" | cut -d'/' -f2)
           echo "repo_name=$REPO_NAME" >> $GITHUB_OUTPUT
 
-      - name: Debug - Show current README content
-        run: |
-          echo "=== CURRENT README CONTENT ==="
-          cat README.md
-          echo "============================"
-
       - name: Update README
         run: |
-          # First try with markdown link format
-          sed -i -E "s|I'm currently working on \[.*\]\(.*\)|I'm currently working on [${{ steps.find-repo.outputs.repo_name }}](https://github.com/${{ steps.find-repo.outputs.most_recent_repo }})|" README.md || \
-          # If that fails, try without link format
-          sed -i -E "s|I'm currently working on .*|I'm currently working on [${{ steps.find-repo.outputs.repo_name }}](https://github.com/${{ steps.find-repo.outputs.most_recent_repo }})|" README.md
+          # Update the specific line while preserving formatting
+          sed -i -E "s|(- 🔭 I'm currently working on )\[.*\]\(.*\)|\1[${{ steps.find-repo.outputs.repo_name }}](https://github.com/${{ steps.find-repo.outputs.most_recent_repo }})|" README.md
 
-          echo "=== MODIFIED README CONTENT ==="
-          cat README.md
-          echo "=============================="
-
-      - name: Debug - Show git changes
-        run: |
-          echo "=== GIT STATUS ==="
-          git status
-          echo "=== GIT DIFF ==="
-          git diff
-          echo "================"
+          # Verify the change
+          echo "Updated project to: ${{ steps.find-repo.outputs.repo_name }}"
+          grep -A 2 "currently working on" README.md
 
       - name: Commit changes
         run: |
