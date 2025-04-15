@@ -5,7 +5,7 @@
 
 <p align="center"> <a href="https://github.com/ryo-ma/github-profile-trophy"><img src="https://github-profile-trophy.vercel.app/?username=jacklebeignet" alt="jacklebeignet" /></a> </p>
 
-- 🔭 I’m currently working on [Nexus Hub](https://github.com/jacklebeignet/scripts/tree/main/NexusHub)
+- 🔭 I’m currently working on [scripts](https://github.com/jacklebeignet/scripts)
 
 - 💬 Ask me about **Lua, HTML, JS, CSS..**
 
