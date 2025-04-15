@@ -19,78 +19,40 @@ jobs:
           path: profile-readme
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Debug - Show files
-        run: |
-          echo "=== Current directory structure ==="
-          ls -la
-          echo "=== Profile README directory ==="
-          ls -la profile-readme/
-
       - name: Setup GitHub CLI
         run: |
-          echo "=== Installing GitHub CLI ==="
           sudo apt-get update
           sudo apt-get install -y gh
-          echo "=== Authenticating with GitHub ==="
           echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
-          echo "=== Authentication status ==="
-          gh auth status
 
       - name: Find most recently updated repo
         id: find-repo
         run: |
-          echo "=== Fetching repository list ==="
-          REPO_LIST=$(gh repo list jacklebeignet --limit 100 --json nameWithOwner,updatedAt --jq '.[] | .nameWithOwner + "|" + .updatedAt')
-          echo "Raw repo list:"
-          echo "$REPO_LIST"
-          
-          echo "=== Finding most recent repo ==="
-          MOST_RECENT_REPO=$(echo "$REPO_LIST" | sort -r -t '|' -k 2 | head -1 | cut -d'|' -f1)
-          echo "Most recent repo: $MOST_RECENT_REPO"
-          
-          echo "=== Getting last commit message ==="
-          LAST_COMMIT_MSG=$(gh api /repos/$MOST_RECENT_REPO/commits --jq '.[0].commit.message' 2>/dev/null || echo "Working on updates")
-          echo "Last commit message: $LAST_COMMIT_MSG"
-          
-          echo "=== Setting outputs ==="
+          # Get list of all repositories sorted by most recently updated
+          MOST_RECENT_REPO=$(gh repo list jacklebeignet --limit 1 --json nameWithOwner,updatedAt --jq 'sort_by(.updatedAt) | reverse | .[0].nameWithOwner')
           echo "most_recent_repo=$MOST_RECENT_REPO" >> $GITHUB_OUTPUT
-          echo "last_commit_msg=$LAST_COMMIT_MSG" >> $GITHUB_OUTPUT
 
-      - name: Debug - Show outputs
-        run: |
-          echo "Most recent repo: ${{ steps.find-repo.outputs.most_recent_repo }}"
-          echo "Last commit msg: ${{ steps.find-repo.outputs.last_commit_msg }}"
+          # Extract just the repo name (without owner)
+          REPO_NAME=$(echo "$MOST_RECENT_REPO" | cut -d'/' -f2)
+          echo "repo_name=$REPO_NAME" >> $GITHUB_OUTPUT
 
       - name: Update README
         working-directory: ./profile-readme
         run: |
-          echo "=== Current README content ==="
-          cat README.md
+          # Format the replacement text
+          REPLACEMENT_TEXT="I'm currently working on [${{ steps.find-repo.outputs.repo_name }}](https://github.com/${{ steps.find-repo.outputs.most_recent_repo }})"
           
-          echo "=== Updating README ==="
-          REPO_NAME=$(echo "${{ steps.find-repo.outputs.most_recent_repo }}" | cut -d'/' -f2)
-          echo "Repo name to use: $REPO_NAME"
+          # Debug output
+          echo "Replacement text will be: $REPLACEMENT_TEXT"
           
-          echo "Running sed command..."
-          sed -i -E "s|I'm currently working on \[.*\]|I'm currently working on [$REPO_NAME](https://github.com/${{ steps.find-repo.outputs.most_recent_repo }})|" README.md
-          
-          echo "=== Updated README content ==="
-          cat README.md
-
-      - name: Debug - Show git status
-        working-directory: ./profile-readme
-        run: |
-          echo "=== Git status before commit ==="
-          git status
-          git diff
+          # Update the README.md file
+          sed -i -E "s|I'm currently working on \[.*\]|$REPLACEMENT_TEXT|" README.md
 
       - name: Commit changes
         working-directory: ./profile-readme
         run: |
-          echo "=== Committing changes ==="
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
           git add README.md
-          git commit -m "Update current project to ${{ steps.find-repo.outputs.most_recent_repo }}" || echo "No changes to commit"
+          git commit -m "🔄 Update current project to ${{ steps.find-repo.outputs.repo_name }}" || echo "No changes to commit"
           git push
-          echo "=== Push complete ==="
