@@ -3,7 +3,7 @@
 
 <p align="center"> <img src="https://komarev.com/ghpvc/?username=jacklebeignet&label=Profile%20views&color=0e75b6&style=flat" alt="jacklebeignet" /> </p>
 
-<p align="center"> <a href="https://github.com/ryo-ma/github-profile-trophy"><img src="https://github-profile-trophy.vercel.app/?username=jacklebeignet" alt="jacklebeignet" /></a> </p>
+<p align="center"> <a href="https://github.com/ryo-ma/github-profile-trophy"><img src="https://github-profile-trophy.vercel.app/?username=jacklebeignet&no-bg=true&theme=onestar&no-frame=true" alt="jacklebeignet" /></a> </p>
 
 - 🔭 I’m currently working on [scripts](https://github.com/jacklebeignet/scripts)
 
