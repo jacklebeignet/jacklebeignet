@@ -1,51 +1,56 @@
-name: Update Current Project
+name: Update "Currently Working On" with latest repo
+
 on:
   schedule:
-    - cron: '0 0 * * *'  # Runs daily at midnight UTC
-  workflow_dispatch:     # Allows manual triggering
-
-permissions:
-  contents: write
+    - cron: '0 */6 * * *'  # Every 6 hours
+  workflow_dispatch:
 
 jobs:
   update-readme:
+    name: Update currently working on repo
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout repository
+      - name: Checkout repo
         uses: actions/checkout@v4
+
+      - name: Update "currently working on" line
+        uses: actions/github-script@v6
         with:
-          repository: jacklebeignet/jacklebeignet
-          token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const username = 'jacklebeignet';
+            const readmePath = 'README.md';
 
-      - name: Authenticate GitHub CLI
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
+            const events = await github.rest.activity.listPublicEventsForUser({
+              username,
+              per_page: 10,
+            });
 
-      - name: Find most recently updated repo
-        id: find-repo
+            const pushEvent = events.data.find(e => e.type === 'PushEvent');
+            if (!pushEvent) {
+              console.log('No push event found');
+              return;
+            }
+
+            const repoName = pushEvent.repo.name; // e.g. jacklebeignet/scripts
+            const repoShort = repoName.split('/')[1];
+            const repoUrl = `https://github.com/${repoName}`;
+            const newLine = `🔭 I’m currently working on [${repoShort}](${repoUrl})`;
+
+            const fs = require('fs');
+            const readme = fs.readFileSync(readmePath, 'utf8');
+
+            const updated = readme.replace(
+              /🔭 I’m currently working on.*(\n)?/,
+              newLine + '\n'
+            );
+
+            fs.writeFileSync(readmePath, updated);
+
+      - name: Commit and push changes
         run: |
-          # Get most recently updated repo (excluding the profile README itself)
-          MOST_RECENT_REPO=$(gh repo list jacklebeignet --limit 100 --json nameWithOwner,updatedAt --jq '.[] | select(.nameWithOwner != "jacklebeignet/jacklebeignet") | .nameWithOwner + "|" + .updatedAt' | sort -r -t '|' -k 2 | head -1 | cut -d'|' -f1)
-          
-          # Fallback to Nexus Hub if no other repos found
-          MOST_RECENT_REPO=${MOST_RECENT_REPO:-jacklebeignet/scripts/NexusHub}
-          
-          echo "most_recent_repo=$MOST_RECENT_REPO" >> $GITHUB_OUTPUT
-          REPO_NAME=$(echo "$MOST_RECENT_REPO" | cut -d'/' -f2)
-          echo "repo_name=$REPO_NAME" >> $GITHUB_OUTPUT
-
-      - name: Update README
-        run: |
-          # Update the specific line while preserving formatting
-          sed -i -E "s|(- 🔭 I'm currently working on )\[.*\]\(.*\)|\1[${{ steps.find-repo.outputs.repo_name }}](https://github.com/${{ steps.find-repo.outputs.most_recent_repo }})|" README.md
-
-          # Verify the change
-          echo "Updated project to: ${{ steps.find-repo.outputs.repo_name }}"
-          grep -A 2 "currently working on" README.md
-
-      - name: Commit changes
-        run: |
-          git config --global user.name "GitHub Actions"
-          git config --global user.email "actions@github.com"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add README.md
-          git commit -m "🔄 Update current project to ${{ steps.find-repo.outputs.repo_name }}" || echo "No changes to commit"
+          git commit -m "🔄 Update current project to latest repo"
           git push
