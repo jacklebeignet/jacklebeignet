@@ -1,0 +1,60 @@
+name: Update Current Project
+on:
+  schedule:
+    # Run daily at 00:00 UTC
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-readme:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout profile README
+        uses: actions/checkout@v4
+        with:
+          repository: jacklebeignet/jacklebeignet
+          path: profile-readme
+
+      - name: Setup GitHub CLI
+        run: |
+          sudo apt-get install -y gh
+          echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
+
+      - name: Find most recently updated repo
+        id: find-repo
+        run: |
+          # Get list of all your repositories
+          REPO_LIST=$(gh repo list jacklebeignet --limit 100 --json nameWithOwner,updatedAt --jq '.[] | .nameWithOwner + "|" + .updatedAt')
+          
+          # Find the most recently updated repo
+          MOST_RECENT_REPO=$(echo "$REPO_LIST" | sort -r -t '|' -k 2 | head -1 | cut -d'|' -f1)
+          
+          # Get the last commit message from that repo
+          LAST_COMMIT_MSG=$(gh api /repos/$MOST_RECENT_REPO/commits --jq '.[0].commit.message' 2>/dev/null || echo "Working on updates")
+          
+          echo "most_recent_repo=$MOST_RECENT_REPO" >> $GITHUB_OUTPUT
+          echo "last_commit_msg=$LAST_COMMIT_MSG" >> $GITHUB_OUTPUT
+
+      - name: Update README
+        working-directory: ./profile-readme
+        run: |
+          # Extract repo name from owner/repo format
+          REPO_NAME=$(echo "${{ steps.find-repo.outputs.most_recent_repo }}" | cut -d'/' -f2)
+          
+          # Update the README.md file
+          sed -i -E "s|I'm currently working on \[.*\]|I'm currently working on [$REPO_NAME](https://github.com/${{ steps.find-repo.outputs.most_recent_repo }})|" README.md
+          
+          # Optional: Add commit message
+          # sed -i -E "s|💡 Last update: .*|💡 Last update: ${{ steps.find-repo.outputs.last_commit_msg }}|" README.md
+
+      - name: Commit changes
+        working-directory: ./profile-readme
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          git add README.md
+          git commit -m "Update current project to ${{ steps.find-repo.outputs.most_recent_repo }}" || echo "No changes to commit"
+          git push
