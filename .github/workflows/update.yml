@@ -1,7 +1,6 @@
 name: Update Current Project
 on:
   schedule:
-    # Run daily at 00:00 UTC
     - cron: '0 0 * * *'
   workflow_dispatch:
 
@@ -15,7 +14,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          # This automatically checks out your profile README repo
           repository: jacklebeignet/jacklebeignet
           token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -28,25 +26,35 @@ jobs:
       - name: Find most recently updated repo
         id: find-repo
         run: |
-          # Get the single most recently updated repo
           MOST_RECENT_REPO=$(gh repo list jacklebeignet --limit 1 --json nameWithOwner,updatedAt --jq 'sort_by(.updatedAt) | reverse | .[0].nameWithOwner')
           echo "most_recent_repo=$MOST_RECENT_REPO" >> $GITHUB_OUTPUT
-          
-          # Extract just the repo name (without owner)
           REPO_NAME=$(echo "$MOST_RECENT_REPO" | cut -d'/' -f2)
           echo "repo_name=$REPO_NAME" >> $GITHUB_OUTPUT
 
+      - name: Debug - Show current README content
+        run: |
+          echo "=== CURRENT README CONTENT ==="
+          cat README.md
+          echo "============================"
+
       - name: Update README
         run: |
-          # Format the replacement text
-          REPLACEMENT_TEXT="I'm currently working on [${{ steps.find-repo.outputs.repo_name }}](https://github.com/${{ steps.find-repo.outputs.most_recent_repo }})"
-          
-          # Update the README.md file
-          sed -i -E "s|I'm currently working on \[.*\]|$REPLACEMENT_TEXT|" README.md
+          # First try with markdown link format
+          sed -i -E "s|I'm currently working on \[.*\]\(.*\)|I'm currently working on [${{ steps.find-repo.outputs.repo_name }}](https://github.com/${{ steps.find-repo.outputs.most_recent_repo }})|" README.md || \
+          # If that fails, try without link format
+          sed -i -E "s|I'm currently working on .*|I'm currently working on [${{ steps.find-repo.outputs.repo_name }}](https://github.com/${{ steps.find-repo.outputs.most_recent_repo }})|" README.md
 
-          # Debug: Show the change
-          echo "Updated to: $REPLACEMENT_TEXT"
-          git diff README.md
+          echo "=== MODIFIED README CONTENT ==="
+          cat README.md
+          echo "=============================="
+
+      - name: Debug - Show git changes
+        run: |
+          echo "=== GIT STATUS ==="
+          git status
+          echo "=== GIT DIFF ==="
+          git diff
+          echo "================"
 
       - name: Commit changes
         run: |
