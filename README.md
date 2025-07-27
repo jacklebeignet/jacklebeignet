@@ -9,7 +9,7 @@
 
 <p align="center"> <a href="https://github.com/ryo-ma/github-profile-trophy"><img src="https://github-profile-trophy.vercel.app/?username=jacklebeignet&no-bg=true&theme=onestar&no-frame=true" alt="jacklebeignet" /></a> </p>
 
-- 🔭 I’m currently working on [exploiters-guide](https://github.com/jacklebeignet/exploiters-guide)
+- 🔭 I’m currently working on [scripts](https://github.com/jacklebeignet/scripts)
 
 - 💬 Ask me about **Lua, HTML, JS, CSS..**
 
