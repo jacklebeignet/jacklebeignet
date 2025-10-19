@@ -30,5 +30,5 @@
 
 <p align="center">
   <a href="https://github.com/Jurredr/github-widgetbox">
-    <img width="100%" src="https://github-widgetbox.vercel.app/api/skills?languages=lua,js,html,css,markdown,json,python&frameworks=react&tools=nodejs,mongodb,npm&software=windows,vscode&includeNames=true&theme=darkmode" alt="GitHub WidgetBox" />
+    <img width="100%" src="https://github-widgetbox.vercel.app/api/skills?languages=lua,js,html,css,markdown,json,python&tools=nodejs,npm&software=windows,vscode&includeNames=true&theme=darkmode" alt="GitHub WidgetBox" />
   </a>
