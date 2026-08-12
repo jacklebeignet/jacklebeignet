@@ -1,16 +1,24 @@
-## Hi there 👋
+<p align="center">
+  <img
+    src="https://github-widgetbox.vercel.app/api/profile?username=jacklebeignet&data=followers,repositories,stars,commits&theme=darkmode"
+    alt="GitHub WidgetBox"
+  />
+</p>
 
-<!--
-**jacklebeignet/jacklebeignet** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.
+---
 
-Here are some ideas to get you started:
+<div align="center">
+    <img src="https://skillicons.dev/icons?i=windows,vscode,git" />
+</div>
+<div align="center">
+   <img src="https://skillicons.dev/icons?i=lua,html,css,js" />
+</div>
+<div align="center">
+   <img src="https://skillicons.dev/icons?i=nodejs,bun" />
+</div>
 
-- 🔭 I’m currently working on ...
-- 🌱 I’m currently learning ...
-- 👯 I’m looking to collaborate on ...
-- 🤔 I’m looking for help with ...
-- 💬 Ask me about ...
-- 📫 How to reach me: ...
-- 😄 Pronouns: ...
-- ⚡ Fun fact: ...
--->
+<br>
+<p align="center"> <img src="https://komarev.com/ghpvc/?username=jacklebeignet&label=Profile%20views&color=0e75b6&style=flat" />
+<a href="https://dsc.gg/beignet" target="_blank" rel="noopener noreferrer">
+  <img src="https://img.shields.io/badge/join%20my-discord-5865F2?logo=discord&logoColor=white" alt="Join my Discord">
+</a>
