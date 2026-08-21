@@ -8,7 +8,7 @@
 ---
 
 <div align="center">
-    <img src="https://skillicons.dev/icons?i=windows,vscode,git" />
+    <img src="https://skillicons.dev/icons?i=apple,windows,vscode,git" />
 </div>
 <div align="center">
    <img src="https://skillicons.dev/icons?i=lua,html,css,js" />
